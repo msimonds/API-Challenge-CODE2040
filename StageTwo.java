@@ -1,3 +1,14 @@
+/**
+* This program completes Stage Two of the CODE2040 API Challenge.
+* Given a string, "needle", the program Uses a binary search method 
+* on a sorted array of strings in order to find the index of a string 
+* that matches the "needle". 
+*
+* @author  Michael Simonds
+* @since   01/11/2015
+*/ 
+package code2040;
+
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -12,6 +23,14 @@ import org.json.JSONObject;
 
 public class StageTwo {
 	
+	
+	/**
+	 * This method establishes a connection and calls the post() method in 
+	 * order to recieve the unique identifying token used throughout the 
+	 * API Challenge.
+	 * 
+	 * @return JSONObject This returns the JSONObject containing the token.
+	 */
 	private static JSONObject register() throws Exception{
 		String mygit = "https://github.com/msimonds/API-Challenge-CODE2040";
 		String myemail = "msimonds@oberlin.edu";
@@ -22,7 +41,17 @@ public class StageTwo {
 		JSONObject json = new JSONObject(dictionary);
 		return post("http://challenge.code2040.org/api/register",json,true);
 	}
-
+	
+	/**
+	 * This method uses the POST method to push a given JSONObject 
+	 * to a specified url. If the output must be stored then a third
+	 * parameter can be used to specify whether the output from the server
+	 * is returned, or a null string. 
+	 * @param urlname The url address of the server.
+	 * @param json  The JSONObject to be POSTed to the server
+	 * @param gettoken If True, the method will return output from the server. If False, the method will return null.
+	 * @return JSONObject This returns JSONObject containing the token or a null value.
+	 */
 	private static JSONObject post(String urlname, JSONObject json, boolean gettoken) throws Exception{ 
 		//Setup connection
 		URL url = new URL(urlname);
@@ -66,9 +95,7 @@ public class StageTwo {
 			arr[x]=(String) jarr.get(x);
 		}		
 		Arrays.sort(arr);
-		for(int y=0;y<jarr.length();y++){
-			System.out.println(arr[y]);
-		}
+		
 		
 		//Post the token and needle
 		dic.put("needle", Arrays.binarySearch(arr, needle));

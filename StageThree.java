@@ -1,11 +1,11 @@
 /**
-* This program completes Stage One of the CODE2040 API Challenge.
-* It uses the POST method to send a unique token to a server which returns a string
-* which is then reversed and sent back to the server using standard Java libraries.
+* This program completes Stage Three of the CODE2040 API Challenge.
+* The code takes a prefix and searches an array for strings that have
+* a matching prefix and removes them from the array. 
 *
 * @author  Michael Simonds
 * @since   01/11/2015
-*/
+*/ 
 
 package code2040;
 
@@ -17,29 +17,27 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class StageOne {
+public class StageThree {
 	
-
 	/**
 	 * This method establishes a connection and calls the post() method in 
 	 * order to recieve the unique identifying token used throughout the 
 	 * API Challenge.
 	 * 
-	 * @return String This returns the token as a String
+	 * @return JSONObject This returns the JSONObject containing the token.
 	 */
-	private static String register() throws Exception{
+	private static JSONObject register() throws Exception{
 		String mygit = "https://github.com/msimonds/API-Challenge-CODE2040";
 		String myemail = "msimonds@oberlin.edu";
-		//create dictionary and json object
+		//Create dictionary and json object
 		Map<String, String> dictionary = new HashMap<String,String>();
 		dictionary.put("email",myemail);
 		dictionary.put("github",mygit);
 		JSONObject json = new JSONObject(dictionary);
 		return post("http://challenge.code2040.org/api/register",json,true);
-		
-				
 	}
 	
 	/**
@@ -49,11 +47,11 @@ public class StageOne {
 	 * is returned, or a null string. 
 	 * @param urlname The url address of the server.
 	 * @param json  The JSONObject to be POSTed to the server
-	 * @param gettoken If True, the method will return output from the server. If False, the method will return the null string
-	 * @return String This returns the token value associated with the key "result", or the null string
+	 * @param gettoken If True, the method will return output from the server. If False, the method will return null.
+	 * @return JSONObject This returns JSONObject containing the token or a null value.
 	 */
-	private static String post(String urlname, JSONObject json, boolean gettoken) throws Exception{ 
-		//setup connection
+	private static JSONObject post(String urlname, JSONObject json, boolean gettoken) throws Exception{ 
+		//Setup connection
 		URL url = new URL(urlname);
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("POST");
@@ -64,16 +62,16 @@ public class StageOne {
 		DataOutputStream out = new DataOutputStream(connection.getOutputStream());
 		out.writeBytes(json.toString());
 		out.close();
-		
 		if(gettoken){
-			//store token
+			//Store token
 			InputStream in = connection.getInputStream();		
 			Scanner scan = new Scanner(in);
 			JSONObject jtoke = new JSONObject(scan.next());		
 			scan.close();
 			in.close();
 			connection.disconnect();
-			return jtoke.getString("result");
+
+			return jtoke;
 		}
 		else{
 			return null;
@@ -81,15 +79,24 @@ public class StageOne {
 	}
 
 	public static void main(String[] args) throws Exception {
-		String toke= register();		
-		//Create JSON dictionary 
+		//Grabs the "prefix" and "array"
 		JSONObject dic = new JSONObject();
-		dic.put("token", toke);
-		//POST reversed string to getstring url
-		String getstr = post("http://challenge.code2040.org/api/getstring",dic,true);
-		dic.put("string", new StringBuilder(getstr).reverse().toString());
-		post("http://challenge.code2040.org/api/validatestring",dic,false);	
-		
+		dic.put("token",register().getString("result"));		
+		JSONObject nh = post("http://challenge.code2040.org/api/prefix",dic,true).getJSONObject("result");
+		JSONArray jarr = nh.getJSONArray("array");		
+		String prefix = nh.getString("prefix");
+		//For loop to compare beginning of strings to prefix and remove from JSONArray
+		int size = jarr.length();
+		for(int x=0; x<size; x++){
+			if(prefix.equals(jarr.get(x).toString().substring(0, prefix.length()))){
+				System.out.println(jarr.get(x).toString().substring(0,prefix.length()));
+				jarr.remove(x);
+				x = x-1;
+				size = size-1;				
+			}
+		}
+		//Update dictionary and POST result
+		dic.put("array", jarr.toString());
+		post("http://challenge.code2040.org/api/validateprefix",dic, false);
 	}
-
 }
